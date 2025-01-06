@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Stream</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">AnimeStream</div>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search anime...">
+                <button onclick="searchAnime()">Search</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="latest-updates">
+                <h2>Latest Updates</h2>
+                <div id="animeList" class="anime-grid">
+                    <div class="loading-spinner"></div>
+                    <!-- Anime cards will be populated here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Created for learning purposes | Data from otakudesu.cloud</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

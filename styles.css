@@ -1,0 +1,148 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+header {
+    background-color: #2d2d2d;
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #00a8ff;
+}
+
+.search-container {
+    display: flex;
+    gap: 10px;
+}
+
+input[type="text"] {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #3d3d3d;
+    color: white;
+    width: 300px;
+}
+
+button {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: #00a8ff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0097e6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.latest-updates {
+    margin-bottom: 2rem;
+}
+
+.latest-updates h2 {
+    margin-bottom: 1rem;
+    color: #00a8ff;
+}
+
+.anime-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.anime-card {
+    background-color: #2d2d2d;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.anime-card:hover {
+    transform: translateY(-5px);
+}
+
+.anime-card img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+}
+
+.anime-info {
+    padding: 1rem;
+}
+
+.anime-info h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.anime-info p {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.error-message {
+    text-align: center;
+    padding: 2rem;
+    background-color: #ff44336e;
+    border-radius: 8px;
+    color: white;
+    grid-column: 1 / -1;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #00a8ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+    grid-column: 1 / -1;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    background-color: #2d2d2d;
+    color: #888;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
