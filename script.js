@@ -1,11 +1,23 @@
 // Store anime list data
 let animeList = [];
+let currentPage = 1;
+let isLoading = false;
+let hasMoreData = true;
 
 // Function to fetch anime data from Jikan API
-async function fetchAnimeData() {
+async function fetchAnimeData(page = 1, append = false) {
+    if (isLoading || (!append && !hasMoreData)) return;
+    
     try {
+        isLoading = true;
+        const loadingSpinner = document.getElementById('loading');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        
+        loadingSpinner.style.display = 'block';
+        loadMoreBtn.style.display = 'none';
+        
         // Add parameters for pagination and limit
-        const response = await fetch('https://api.jikan.moe/v4/seasons/now?limit=25&page=1');
+        const response = await fetch(`https://api.jikan.moe/v4/seasons/now?limit=15&page=${page}`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -14,13 +26,14 @@ async function fetchAnimeData() {
         const data = await response.json();
         
         if (!data.data || data.data.length === 0) {
-            throw new Error('No anime data found');
+            hasMoreData = false;
+            throw new Error('No more anime data found');
         }
 
         console.log('Fetched anime data:', data); // Debug log
         
         // Transform the data to match our format
-        animeList = data.data.map(anime => ({
+        const newAnimeList = data.data.map(anime => ({
             title: anime.title || anime.title_english || 'Unknown Title',
             episode: `Episodes: ${anime.episodes || '?'}`,
             image: anime.images.jpg.large_image_url || 'https://via.placeholder.com/200x280',
@@ -35,29 +48,48 @@ async function fetchAnimeData() {
             year: anime.year
         }));
 
-        displayAnime(animeList);
+        if (append) {
+            animeList = [...animeList, ...newAnimeList];
+            displayAnime(newAnimeList, true);
+        } else {
+            animeList = newAnimeList;
+            displayAnime(newAnimeList, false);
+        }
 
         // Update page title with count
         const titleElement = document.querySelector('.latest-updates h2');
         if (titleElement) {
             titleElement.textContent = `Latest Updates (${animeList.length} anime)`;
         }
+
+        // Show/hide load more button based on data availability
+        hasMoreData = data.pagination.has_next_page;
+        loadMoreBtn.style.display = hasMoreData ? 'block' : 'none';
+        
     } catch (error) {
         console.error('Error fetching anime:', error);
-        const animeGrid = document.getElementById('animeList');
-        animeGrid.innerHTML = `
-            <div class="error-message">
-                Failed to load anime data. Error: ${error.message}<br>
-                Please try again later or contact support.
-            </div>
-        `;
+        if (!append) {
+            const animeGrid = document.getElementById('animeList');
+            animeGrid.innerHTML = `
+                <div class="error-message">
+                    Failed to load anime data. Error: ${error.message}<br>
+                    Please try again later or contact support.
+                </div>
+            `;
+        }
+    } finally {
+        isLoading = false;
+        document.getElementById('loading').style.display = 'none';
     }
 }
 
 // Function to display anime in the grid
-function displayAnime(animeData) {
+function displayAnime(animeData, append = false) {
     const animeGrid = document.getElementById('animeList');
-    animeGrid.innerHTML = '';
+    
+    if (!append) {
+        animeGrid.innerHTML = '';
+    }
 
     animeData.forEach(anime => {
         const animeCard = document.createElement('div');
@@ -90,7 +122,19 @@ function searchAnime() {
     displayAnime(filteredAnime);
 }
 
+// Load more function
+function loadMore() {
+    if (!isLoading && hasMoreData) {
+        currentPage++;
+        fetchAnimeData(currentPage, true);
+    }
+}
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', () => {
-    fetchAnimeData();
+    fetchAnimeData(1, false);
+    
+    // Add load more button event listener
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    loadMoreBtn.addEventListener('click', loadMore);
 });
