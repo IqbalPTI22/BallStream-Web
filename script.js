@@ -1,56 +1,39 @@
-// Sample data structure for anime
+// Store anime list data
 let animeList = [];
 
-// Function to fetch anime data from otakudesu
+// Function to fetch anime data from Jikan API
 async function fetchAnimeData() {
     try {
-        const proxyUrl = 'https://api.allorigins.win/raw?url=';
-        const targetUrl = encodeURIComponent('https://otakudesu.cloud/ongoing-anime/');
-        const response = await fetch(proxyUrl + targetUrl);
+        const response = await fetch('https://api.jikan.moe/v4/seasons/now');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const text = await response.text();
+        const data = await response.json();
         
-        // Create a DOM parser
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
-        
-        // Extract anime data from the parsed HTML
-        const animeElements = doc.querySelectorAll('.venz');
-        
-        if (!animeElements || animeElements.length === 0) {
-            console.log('No anime elements found in parsed HTML');
-            console.log('Parsed HTML:', doc.documentElement.innerHTML);
+        if (!data.data || data.data.length === 0) {
             throw new Error('No anime data found');
         }
+
+        console.log('Fetched anime data:', data); // Debug log
         
-        const animeData = Array.from(animeElements).map(element => {
-            const titleElement = element.querySelector('.jdlflm');
-            const imageElement = element.querySelector('img');
-            const episodeElement = element.querySelector('.epz');
-            const linkElement = element.querySelector('a');
-            
-            return {
-                title: titleElement ? titleElement.textContent.trim() : 'Unknown Title',
-                episode: episodeElement ? episodeElement.textContent.trim() : 'Unknown Episode',
-                image: imageElement ? imageElement.src : 'https://via.placeholder.com/200x280',
-                url: linkElement ? linkElement.href : '#'
-            };
-        });
+        // Transform the data to match our format
+        animeList = data.data.map(anime => ({
+            title: anime.title || anime.title_english || 'Unknown Title',
+            episode: `Episodes: ${anime.episodes || '?'}`,
+            image: anime.images.jpg.large_image_url || 'https://via.placeholder.com/200x280',
+            url: anime.mal_id,
+            synopsis: anime.synopsis,
+            score: anime.score,
+            status: anime.status,
+            aired: anime.aired.string,
+            rating: anime.rating
+        }));
 
-        if (animeData.length === 0) {
-            throw new Error('No anime data could be extracted');
-        }
-
-        console.log('Fetched anime data:', animeData); // Debug log
-        animeList = animeData;
         displayAnime(animeList);
     } catch (error) {
         console.error('Error fetching anime:', error);
-        // Show detailed error message to user
         const animeGrid = document.getElementById('animeList');
         animeGrid.innerHTML = `
             <div class="error-message">
@@ -70,19 +53,17 @@ function displayAnime(animeData) {
         const animeCard = document.createElement('div');
         animeCard.className = 'anime-card';
         
-        // Extract anime ID from URL
-        const animeId = anime.url.split('/').filter(Boolean).pop();
-        
         animeCard.innerHTML = `
             <img src="${anime.image}" alt="${anime.title}">
             <div class="anime-info">
                 <h3>${anime.title}</h3>
                 <p>${anime.episode}</p>
+                ${anime.score ? `<p class="score">⭐ ${anime.score}</p>` : ''}
             </div>
         `;
         
         animeCard.addEventListener('click', () => {
-            window.location.href = `anime-detail.html?id=${animeId}`;
+            window.location.href = `anime-detail.html?id=${anime.url}`;
         });
 
         animeGrid.appendChild(animeCard);
