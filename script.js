@@ -49,6 +49,10 @@ function displayAnime(animeData) {
     animeData.forEach(anime => {
         const animeCard = document.createElement('div');
         animeCard.className = 'anime-card';
+        
+        // Extract anime ID from URL
+        const animeId = anime.url.split('/').filter(Boolean).pop();
+        
         animeCard.innerHTML = `
             <img src="${anime.image}" alt="${anime.title}">
             <div class="anime-info">
@@ -58,8 +62,7 @@ function displayAnime(animeData) {
         `;
         
         animeCard.addEventListener('click', () => {
-            // Handle click event (navigate to anime page)
-            console.log(`Clicked: ${anime.title}`);
+            window.location.href = `anime-detail.html?id=${animeId}`;
         });
 
         animeGrid.appendChild(animeCard);
