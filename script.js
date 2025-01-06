@@ -4,7 +4,8 @@ let animeList = [];
 // Function to fetch anime data from Jikan API
 async function fetchAnimeData() {
     try {
-        const response = await fetch('https://api.jikan.moe/v4/seasons/now');
+        // Add parameters for pagination and limit
+        const response = await fetch('https://api.jikan.moe/v4/seasons/now?limit=25&page=1');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -28,10 +29,19 @@ async function fetchAnimeData() {
             score: anime.score,
             status: anime.status,
             aired: anime.aired.string,
-            rating: anime.rating
+            rating: anime.rating,
+            type: anime.type,
+            season: anime.season,
+            year: anime.year
         }));
 
         displayAnime(animeList);
+
+        // Update page title with count
+        const titleElement = document.querySelector('.latest-updates h2');
+        if (titleElement) {
+            titleElement.textContent = `Latest Updates (${animeList.length} anime)`;
+        }
     } catch (error) {
         console.error('Error fetching anime:', error);
         const animeGrid = document.getElementById('animeList');
@@ -59,6 +69,7 @@ function displayAnime(animeData) {
                 <h3>${anime.title}</h3>
                 <p>${anime.episode}</p>
                 ${anime.score ? `<p class="score">⭐ ${anime.score}</p>` : ''}
+                <p class="type">${anime.type || 'TV'}</p>
             </div>
         `;
         

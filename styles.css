@@ -117,6 +117,16 @@ button:hover {
     color: #888;
 }
 
+.type {
+    background-color: #00a8ff;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
 .error-message {
     text-align: center;
     padding: 2rem;
