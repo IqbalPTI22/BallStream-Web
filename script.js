@@ -4,7 +4,7 @@ let currentPage = 1;
 let isLoading = false;
 let hasMoreData = true;
 
-// Function to fetch anime data from Jikan API
+// Function to fetch anime data from otakudesu
 async function fetchAnimeData(page = 1, append = false) {
     if (isLoading || (!append && !hasMoreData)) return;
     
@@ -15,38 +15,52 @@ async function fetchAnimeData(page = 1, append = false) {
         
         loadingSpinner.style.display = 'block';
         loadMoreBtn.style.display = 'none';
-        
-        // Add parameters for pagination and limit
-        const response = await fetch(`https://api.jikan.moe/v4/seasons/now?limit=15&page=${page}`);
+
+        // Use a CORS proxy to access otakudesu
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const targetUrl = encodeURIComponent(`https://otakudesu.cloud/ongoing-anime/page/${page}`);
+        const response = await fetch(proxyUrl + targetUrl);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = await response.json();
+        const html = await response.text();
         
-        if (!data.data || data.data.length === 0) {
+        // Parse the HTML content
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // Extract anime data
+        const animeElements = doc.querySelectorAll('.venz');
+        
+        if (!animeElements || animeElements.length === 0) {
             hasMoreData = false;
-            throw new Error('No more anime data found');
+            throw new Error('No more anime found');
         }
 
-        console.log('Fetched anime data:', data); // Debug log
-        
-        // Transform the data to match our format
-        const newAnimeList = data.data.map(anime => ({
-            title: anime.title || anime.title_english || 'Unknown Title',
-            episode: `Episodes: ${anime.episodes || '?'}`,
-            image: anime.images.jpg.large_image_url || 'https://via.placeholder.com/200x280',
-            url: anime.mal_id,
-            synopsis: anime.synopsis,
-            score: anime.score,
-            status: anime.status,
-            aired: anime.aired.string,
-            rating: anime.rating,
-            type: anime.type,
-            season: anime.season,
-            year: anime.year
-        }));
+        // Transform the data
+        const newAnimeList = Array.from(animeElements).map(element => {
+            const titleElement = element.querySelector('.jdlflm');
+            const imageElement = element.querySelector('img');
+            const episodeElement = element.querySelector('.epz');
+            const dateElement = element.querySelector('.newnime');
+            const linkElement = element.querySelector('a');
+            
+            const animeData = {
+                title: titleElement ? titleElement.textContent.trim() : 'Unknown Title',
+                episode: episodeElement ? episodeElement.textContent.trim() : 'Unknown Episode',
+                image: imageElement ? imageElement.src : 'https://via.placeholder.com/200x280',
+                date: dateElement ? dateElement.textContent.trim() : '',
+                url: linkElement ? linkElement.href : '#'
+            };
+
+            // Extract anime ID from URL
+            const urlParts = animeData.url.split('/');
+            animeData.id = urlParts[urlParts.length - 2] || urlParts[urlParts.length - 1];
+
+            return animeData;
+        });
 
         if (append) {
             animeList = [...animeList, ...newAnimeList];
@@ -59,11 +73,12 @@ async function fetchAnimeData(page = 1, append = false) {
         // Update page title with count
         const titleElement = document.querySelector('.latest-updates h2');
         if (titleElement) {
-            titleElement.textContent = `Latest Updates (${animeList.length} anime)`;
+            titleElement.textContent = `Latest Updates from OtakuDesu (${animeList.length} anime)`;
         }
 
-        // Show/hide load more button based on data availability
-        hasMoreData = data.pagination.has_next_page;
+        // Check if there's a next page by looking for pagination
+        const nextPageLink = doc.querySelector('.pagination .next');
+        hasMoreData = !!nextPageLink;
         loadMoreBtn.style.display = hasMoreData ? 'block' : 'none';
         
     } catch (error) {
@@ -99,14 +114,13 @@ function displayAnime(animeData, append = false) {
             <img src="${anime.image}" alt="${anime.title}">
             <div class="anime-info">
                 <h3>${anime.title}</h3>
-                <p>${anime.episode}</p>
-                ${anime.score ? `<p class="score">⭐ ${anime.score}</p>` : ''}
-                <p class="type">${anime.type || 'TV'}</p>
+                <p class="episode">${anime.episode}</p>
+                ${anime.date ? `<p class="date">${anime.date}</p>` : ''}
             </div>
         `;
         
         animeCard.addEventListener('click', () => {
-            window.location.href = `anime-detail.html?id=${anime.url}`;
+            window.location.href = `anime-detail.html?id=${anime.id}`;
         });
 
         animeGrid.appendChild(animeCard);

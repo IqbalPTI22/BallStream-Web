@@ -117,6 +117,18 @@ button:hover {
     color: #888;
 }
 
+.anime-info .episode {
+    color: #00a8ff;
+    font-weight: 500;
+    margin: 4px 0;
+}
+
+.anime-info .date {
+    color: #888;
+    font-size: 0.9rem;
+    margin: 4px 0;
+}
+
 .type {
     background-color: #00a8ff;
     color: white;
