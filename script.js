@@ -4,7 +4,8 @@ let animeList = [];
 // Function to fetch anime data from otakudesu
 async function fetchAnimeData() {
     try {
-        const response = await fetch('https://otakudesu.cloud/ongoing-anime/');
+        const corsProxy = 'https://corsproxy.io/?';
+        const response = await fetch(corsProxy + encodeURIComponent('https://otakudesu.cloud/ongoing-anime/'));
         const text = await response.text();
         
         // Create a DOM parser

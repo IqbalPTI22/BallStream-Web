@@ -4,7 +4,8 @@ const animeId = urlParams.get('id');
 
 async function fetchAnimeDetail() {
     try {
-        const response = await fetch(`https://otakudesu.cloud/anime/${animeId}`);
+        const corsProxy = 'https://corsproxy.io/?';
+        const response = await fetch(corsProxy + encodeURIComponent(`https://otakudesu.cloud/anime/${animeId}`));
         const text = await response.text();
         
         // Create a DOM parser
