@@ -4,19 +4,30 @@ const animeId = urlParams.get('id');
 
 async function fetchAnimeDetail() {
     try {
-        const corsProxy = 'https://corsproxy.io/?';
-        const response = await fetch(corsProxy + encodeURIComponent(`https://otakudesu.cloud/anime/${animeId}`));
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const targetUrl = encodeURIComponent(`https://otakudesu.cloud/anime/${animeId}`);
+        const response = await fetch(proxyUrl + targetUrl);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const text = await response.text();
         
         // Create a DOM parser
         const parser = new DOMParser();
         const doc = parser.parseFromString(text, 'text/html');
         
-        // Extract anime details
+        // Extract anime details with better error handling
         const title = doc.querySelector('.jdlrx h1')?.textContent.trim() || 'Unknown Title';
-        const image = doc.querySelector('.wp-post-image')?.src || 'https://via.placeholder.com/300x400';
-        const synopsis = doc.querySelector('.sinopc')?.textContent.trim() || 'No synopsis available';
-        const info = doc.querySelector('.infozingle')?.innerHTML || '';
+        const image = doc.querySelector('.wp-post-image')?.src;
+        const synopsis = doc.querySelector('.sinopc')?.textContent.trim();
+        const info = doc.querySelector('.infozingle')?.innerHTML;
+        
+        if (!title || !image || !synopsis || !info) {
+            console.log('Missing required data:', { title, image, synopsis, info });
+            throw new Error('Could not find all required anime information');
+        }
         
         // Display anime details
         const animeDetailElement = document.getElementById('animeDetail');
@@ -40,9 +51,12 @@ async function fetchAnimeDetail() {
                 <div class="episode-grid">
                     ${episodes.map(episode => {
                         const link = episode.querySelector('a');
+                        const episodeUrl = link?.href;
+                        if (!episodeUrl) return '';
+                        
                         return `
-                            <div class="episode-item" onclick="window.location.href='${link?.href || '#'}'" data-url="${link?.href || '#'}">
-                                ${link?.textContent || 'Unknown Episode'}
+                            <div class="episode-item" onclick="window.location.href='${episodeUrl}'">
+                                ${link.textContent || 'Unknown Episode'}
                             </div>
                         `;
                     }).join('')}
@@ -56,7 +70,8 @@ async function fetchAnimeDetail() {
         console.error('Error fetching anime details:', error);
         document.getElementById('animeDetail').innerHTML = `
             <div class="error-message">
-                Failed to load anime details. Please try again later.
+                Failed to load anime details. Error: ${error.message}<br>
+                Please try again later or contact support.
             </div>
         `;
     }

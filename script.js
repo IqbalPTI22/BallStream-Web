@@ -4,8 +4,14 @@ let animeList = [];
 // Function to fetch anime data from otakudesu
 async function fetchAnimeData() {
     try {
-        const corsProxy = 'https://corsproxy.io/?';
-        const response = await fetch(corsProxy + encodeURIComponent('https://otakudesu.cloud/ongoing-anime/'));
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const targetUrl = encodeURIComponent('https://otakudesu.cloud/ongoing-anime/');
+        const response = await fetch(proxyUrl + targetUrl);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const text = await response.text();
         
         // Create a DOM parser
@@ -14,6 +20,13 @@ async function fetchAnimeData() {
         
         // Extract anime data from the parsed HTML
         const animeElements = doc.querySelectorAll('.venz');
+        
+        if (!animeElements || animeElements.length === 0) {
+            console.log('No anime elements found in parsed HTML');
+            console.log('Parsed HTML:', doc.documentElement.innerHTML);
+            throw new Error('No anime data found');
+        }
+        
         const animeData = Array.from(animeElements).map(element => {
             const titleElement = element.querySelector('.jdlflm');
             const imageElement = element.querySelector('img');
@@ -28,15 +41,21 @@ async function fetchAnimeData() {
             };
         });
 
+        if (animeData.length === 0) {
+            throw new Error('No anime data could be extracted');
+        }
+
+        console.log('Fetched anime data:', animeData); // Debug log
         animeList = animeData;
         displayAnime(animeList);
     } catch (error) {
         console.error('Error fetching anime:', error);
-        // Show error message to user
+        // Show detailed error message to user
         const animeGrid = document.getElementById('animeList');
         animeGrid.innerHTML = `
             <div class="error-message">
-                Failed to load anime data. Please try again later.
+                Failed to load anime data. Error: ${error.message}<br>
+                Please try again later or contact support.
             </div>
         `;
     }
